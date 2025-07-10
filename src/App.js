@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, User, Calendar, Phone, CheckCircle, Circle, Printer, Trash2, Edit2, Save, Mail, Download, Clock, AlertCircle } from 'lucide-react';
 
 const OnboardingApp = () => {
@@ -8,11 +8,6 @@ const OnboardingApp = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [sortBy, setSortBy] = useState('startDate');
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [selectedMember, setSelectedMember] = useState(null);
   const [newMember, setNewMember] = useState({
     name: '',
     startDate: '',
@@ -93,6 +88,45 @@ const OnboardingApp = () => {
   // API configuration
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
+  const saveData = useCallback(async () => {
+    try {
+      const now = new Date();
+      const dataToSave = {
+        teamMembers,
+        lastSaved: now.toISOString()
+      };
+
+      const response = await fetch(`${API_BASE_URL}/onboarding-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSave)
+      });
+
+      if (response.ok) {
+        setLastSaved(now);
+        setHasUnsavedChanges(false);
+        console.log('Data saved to server successfully');
+      } else {
+        console.error('Failed to save data to server');
+        // Fallback to localStorage
+        localStorage.setItem('chilisOnboardingMembers', JSON.stringify(teamMembers));
+        localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
+        setLastSaved(now);
+        setHasUnsavedChanges(false);
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      // Fallback to localStorage
+      const now = new Date();
+      localStorage.setItem('chilisOnboardingMembers', JSON.stringify(teamMembers));
+      localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
+      setLastSaved(now);
+      setHasUnsavedChanges(false);
+    }
+  }, [teamMembers, API_BASE_URL]);
+
   // Load data from API on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -143,45 +177,6 @@ const OnboardingApp = () => {
       return () => clearTimeout(timer);
     }
   }, [hasUnsavedChanges, saveData]);
-
-  const saveData = async () => {
-    try {
-      const now = new Date();
-      const dataToSave = {
-        teamMembers,
-        lastSaved: now.toISOString()
-      };
-
-      const response = await fetch(`${API_BASE_URL}/onboarding-data`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSave)
-      });
-
-      if (response.ok) {
-        setLastSaved(now);
-        setHasUnsavedChanges(false);
-        console.log('Data saved to server successfully');
-      } else {
-        console.error('Failed to save data to server');
-        // Fallback to localStorage
-        localStorage.setItem('chilisOnboardingMembers', JSON.stringify(teamMembers));
-        localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
-        setLastSaved(now);
-        setHasUnsavedChanges(false);
-      }
-    } catch (error) {
-      console.error('Error saving data:', error);
-      // Fallback to localStorage
-      const now = new Date();
-      localStorage.setItem('chilisOnboardingMembers', JSON.stringify(teamMembers));
-      localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
-      setLastSaved(now);
-      setHasUnsavedChanges(false);
-    }
-  };
 
   // Enhanced data persistence with backup
   // const backupData = async () => {
@@ -703,7 +698,7 @@ const OnboardingApp = () => {
                             </div>
                             <button
                               onClick={() => {
-                                setSelectedMember(member);
+                                // setSelectedMember(member); // This line was removed
                                 // setViewMode('detail'); // This line was removed
                               }}
                               className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
@@ -732,7 +727,7 @@ const OnboardingApp = () => {
                               </div>
                               <button
                                 onClick={() => {
-                                  setSelectedMember(member);
+                                  // setSelectedMember(member); // This line was removed
                                   // setViewMode('detail'); // This line was removed
                                 }}
                                 className="text-blue-600 hover:text-blue-800 text-xs"
@@ -763,7 +758,7 @@ const OnboardingApp = () => {
                                 </div>
                                 <button
                                   onClick={() => {
-                                    setSelectedMember(member);
+                                    // setSelectedMember(member); // This line was removed
                                     // setViewMode('detail'); // This line was removed
                                   }}
                                   className="text-green-600 hover:text-green-800 text-xs"
@@ -802,7 +797,7 @@ const OnboardingApp = () => {
                                 </div>
                                 <button
                                   onClick={() => {
-                                    setSelectedMember(member);
+                                    // setSelectedMember(member); // This line was removed
                                     // setViewMode('detail'); // This line was removed
                                   }}
                                   className="text-blue-600 hover:text-blue-800 text-xs"
