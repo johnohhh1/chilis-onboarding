@@ -1,138 +1,123 @@
-# 🌶️ Chili's Onboarding Tracker
+# Chili's Onboarding Tracker
 
-A comprehensive onboarding management system for tracking new hires and ensuring they don't get lost in bureaucracy.
+A comprehensive onboarding management system for Chili's restaurants to track new team members through their onboarding journey.
 
-## ✨ Features
+## 🚀 Features
 
-- **Multi-User Support**: Shared data across all managers and HR staff
-- **Real-time Dashboard**: Overview of all new hires with status tracking
-- **Task Management**: Check off onboarding tasks with progress tracking
-- **Data Persistence**: Server-side storage with automatic backups
-- **Mobile-Friendly**: Responsive design that works on all devices
-- **Auto-Save**: Changes are automatically saved to prevent data loss
+- **Dashboard Overview**: Track all new hires with completion statistics
+- **Task Management**: Comprehensive checklist for each onboarding step
+- **Data Persistence**: Automatic saving with Vercel Postgres database
+- **Mobile-Friendly**: Responsive design for all devices
+- **Export & Print**: Generate reports and email templates
 
-## 🚀 Quick Start
+## 🛠️ Tech Stack
+
+- **Frontend**: React 19 with Tailwind CSS
+- **Backend**: Vercel Serverless Functions
+- **Database**: Vercel Postgres
+- **Deployment**: Vercel
+
+## 📋 Onboarding Steps
+
+### Step 1: Setting Up New TM
+- Call candidate and extend offer
+- Provide start date and First Day overview
+- Download Zoom Workplace app
+- Complete New Hire Application
+- Create offer in Oracle
+- Direct to Onboarding Journey
+
+### Step 2: Prior to First Day
+- Verify onboarding completion
+- Assign job codes and pay rates
+
+### Step 3: Prepare Materials
+- VFD Par Guide
+- First Day Pin
+- HotSchedules Welcome Sheet
+- Welcome Gift
+- Training Schedule
+
+### Step 4: First Day
+- Clock-in demonstration
+- I-9 verification
+- Team introductions
+- Brinker Nation setup
+- Oracle Fusion app setup
+- VFDO setup (90 minutes)
+
+### Step 5: Post First Day
+- Enable Gratshare after 72 hours
+- Complete Learning Path
+- Schedule job-specific webinar
+- 30-Day Survey
+
+## 🚀 Deployment
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
+1. Vercel account
+2. Vercel CLI installed
 
-### Installation
+### Setup Steps
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd chilis-onboarding
-   ```
-
-2. **Install dependencies**
+1. **Install Dependencies**
    ```bash
    npm install
    ```
 
-3. **Start the development server**
+2. **Deploy to Vercel**
    ```bash
-   npm run dev
+   vercel
    ```
 
-This will start both the backend API server (port 3001) and the React frontend (port 3000).
+3. **Set up Vercel Postgres**
+   - Go to your Vercel dashboard
+   - Navigate to Storage → Create Database
+   - Select Postgres
+   - Copy the connection string
 
-## 📁 Project Structure
+4. **Configure Environment Variables**
+   - In Vercel dashboard, go to Settings → Environment Variables
+   - Add `POSTGRES_URL` with your database connection string
 
-```
-chilis-onboarding/
-├── src/                    # React frontend
-│   ├── App.js             # Main application component
-│   └── index.js           # React entry point
-├── server.js              # Express backend API
-├── data/                  # Data storage (auto-created)
-│   └── onboarding-data.json
-└── package.json
-```
+5. **Initialize Database**
+   - Run the SQL commands from `database-schema.sql` in your Vercel Postgres database
 
-## 🔧 Configuration
+6. **Deploy API Routes**
+   ```bash
+   vercel --prod
+   ```
 
-### Environment Variables
+## 🔧 Development
 
-Create a `.env` file in the root directory:
-
-```env
-# API Configuration
-REACT_APP_API_URL=http://localhost:3001/api
-
-# Server Configuration
-PORT=3001
+### Local Development
+```bash
+npm start
 ```
 
-## 📊 API Endpoints
+The app will run on `http://localhost:3000`
+
+### API Endpoints
 
 - `GET /api/onboarding-data` - Retrieve all onboarding data
 - `POST /api/onboarding-data` - Save onboarding data
-- `POST /api/backup` - Create a manual backup
-- `GET /api/health` - Health check endpoint
+- `GET /api/health` - Health check
 
-## 🗄️ Data Storage
+## 📱 Usage
 
-All data is stored in JSON files in the `data/` directory:
-- `onboarding-data.json` - Main data file
-- `backup-*.json` - Manual backup files
+1. **Dashboard View**: Overview of all team members and their progress
+2. **Add New Member**: Click "Add New Team Member" to start tracking
+3. **Track Progress**: Check off completed tasks for each step
+4. **Export Data**: Generate reports and email templates
+5. **Auto-Save**: All changes are automatically saved to the database
 
-## 🚀 Deployment Options
+## 🔒 Data Persistence
 
-### Option 1: Simple Hosting (Recommended)
-- **Frontend**: Deploy to Vercel, Netlify, or GitHub Pages
-- **Backend**: Deploy to Railway, Render, or Heroku
-- **Database**: Use the built-in file storage or upgrade to a proper database
+- All data is stored in Vercel Postgres database
+- Automatic backups and versioning
+- Fallback to localStorage if API is unavailable
+- Real-time synchronization across devices
 
-### Option 2: Full-Stack Platform
-- Deploy to platforms like Railway, Render, or Heroku that support both frontend and backend
+## 📞 Support
 
-### Option 3: Self-Hosted
-- Deploy to your own server or VPS
-- Use a reverse proxy (nginx) to serve both frontend and backend
-
-## 🔒 Security Considerations
-
-- The current implementation uses file-based storage
-- For production, consider:
-  - Adding authentication/authorization
-  - Using a proper database (PostgreSQL, MongoDB)
-  - Implementing rate limiting
-  - Adding HTTPS
-  - Setting up proper CORS policies
-
-## 🛠️ Development
-
-### Available Scripts
-
-- `npm run dev` - Start both frontend and backend
-- `npm run server` - Start only the backend server
-- `npm start` - Start only the React frontend
-- `npm run build` - Build for production
-
-### Adding New Features
-
-1. **Backend**: Add new routes in `server.js`
-2. **Frontend**: Update components in `src/App.js`
-3. **Data**: The data structure is flexible and can be extended
-
-## 📈 Future Enhancements
-
-- [ ] User authentication and roles
-- [ ] Email notifications for overdue tasks
-- [ ] Integration with HR systems
-- [ ] Advanced reporting and analytics
-- [ ] Mobile app version
-- [ ] Real-time collaboration features
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
+For issues or questions, please contact the development team.

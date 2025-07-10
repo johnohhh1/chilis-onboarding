@@ -85,8 +85,8 @@ const OnboardingApp = () => {
     'iPad cases / straps'
   ];
 
-  // API configuration
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+  // API configuration - use Vercel API routes
+  const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
   const saveData = useCallback(async () => {
     try {
