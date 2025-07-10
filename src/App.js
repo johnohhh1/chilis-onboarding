@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, User, Calendar, Phone, CheckCircle, Circle, Printer, Trash2, Edit2, Save, Mail, Download, Clock, AlertCircle } from 'lucide-react';
+import { Plus, User, Calendar, Phone, CheckCircle, Circle, Printer, Trash2, Edit2, Save, Mail, Download, Clock, AlertCircle, Building2 } from 'lucide-react';
+import { RestaurantProvider, useRestaurant } from './contexts/RestaurantContext';
+import RestaurantSelector from './components/RestaurantSelector';
+import MultiRestaurantDashboard from './components/MultiRestaurantDashboard';
 
 const OnboardingApp = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -88,12 +91,15 @@ const OnboardingApp = () => {
   // API configuration - use Vercel API routes for production, localhost for development
   const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
+  const { selectedRestaurant } = useRestaurant();
+
   const saveData = useCallback(async () => {
     try {
       const now = new Date();
       const dataToSave = {
         teamMembers,
-        lastSaved: now.toISOString()
+        lastSaved: now.toISOString(),
+        restaurant_id: selectedRestaurant?.id
       };
 
       const response = await fetch(`${API_BASE_URL}/onboarding-data`, {
@@ -131,7 +137,11 @@ const OnboardingApp = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/onboarding-data`);
+        const url = selectedRestaurant 
+          ? `${API_BASE_URL}/onboarding-data?restaurant_id=${selectedRestaurant.id}`
+          : `${API_BASE_URL}/onboarding-data`;
+        
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setTeamMembers(data.teamMembers || []);
@@ -164,8 +174,10 @@ const OnboardingApp = () => {
       }
     };
 
-    loadData();
-  }, [API_BASE_URL]);
+    if (selectedRestaurant) {
+      loadData();
+    }
+  }, [API_BASE_URL, selectedRestaurant]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -490,7 +502,12 @@ const OnboardingApp = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           {/* Header Section */}
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-red-600 mb-4">605 Team Member Onboarding Tracker</h1>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+              <h1 className="text-2xl md:text-3xl font-bold text-red-600 mb-2 md:mb-0">
+                Chili's Team Member Onboarding Tracker
+              </h1>
+              <RestaurantSelector />
+            </div>
             <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
               <span className="flex items-center gap-1">
                 <Clock size={16} />
@@ -500,6 +517,12 @@ const OnboardingApp = () => {
                 <span className="flex items-center gap-1 text-orange-600">
                   <AlertCircle size={16} />
                   Unsaved changes
+                </span>
+              )}
+              {selectedRestaurant && (
+                <span className="flex items-center gap-1 text-blue-600">
+                  <Building2 size={16} />
+                  {selectedRestaurant.name}
                 </span>
               )}
             </div>
@@ -525,6 +548,16 @@ const OnboardingApp = () => {
                 }`}
               >
                 👥 Team Members
+              </button>
+              <button
+                onClick={() => setActiveTab('multi-restaurant')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  activeTab === 'multi-restaurant' 
+                    ? 'bg-red-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                🏢 Multi-Restaurant
               </button>
             </div>
 
@@ -1036,10 +1069,23 @@ const OnboardingApp = () => {
               )}
             </>
           )}
+
+          {/* Multi-Restaurant Dashboard */}
+          {activeTab === 'multi-restaurant' && (
+            <MultiRestaurantDashboard />
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default OnboardingApp;
+const App = () => {
+  return (
+    <RestaurantProvider>
+      <OnboardingApp />
+    </RestaurantProvider>
+  );
+};
+
+export default App;

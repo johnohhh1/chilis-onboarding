@@ -1,3 +1,5 @@
+import { initializeDatabase, getOnboardingData, saveOnboardingData } from './db.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,36 +11,38 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Simple in-memory storage for now
-  let data = {
-    teamMembers: [],
-    lastSaved: null,
-    version: '1.0'
-  };
-
   try {
+    // Initialize database on first request
+    await initializeDatabase();
+
     if (req.method === 'GET') {
+      const { restaurant_id } = req.query;
+      const restaurantId = restaurant_id ? parseInt(restaurant_id) : null;
+      
+      const data = await getOnboardingData(restaurantId);
       res.status(200).json(data);
     } else if (req.method === 'POST') {
-      const { teamMembers, lastSaved } = req.body;
+      const { teamMembers, lastSaved, restaurant_id } = req.body;
+      const restaurantId = restaurant_id ? parseInt(restaurant_id) : null;
       
-      data = {
-        teamMembers: teamMembers || [],
-        lastSaved: lastSaved || new Date().toISOString(),
-        version: '1.0'
-      };
+      const result = await saveOnboardingData(teamMembers, restaurantId);
       
-      res.status(200).json({ 
-        success: true, 
-        message: 'Data saved successfully',
-        timestamp: new Date().toISOString()
-      });
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Data saved successfully',
+          timestamp: result.timestamp
+        });
+      } else {
+        res.status(500).json({ error: result.error });
+      }
     } else {
       res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error) {
     console.error('API error:', error);
-    res.status(200).json({
+    res.status(500).json({
+      error: 'Internal server error',
       teamMembers: [],
       lastSaved: null,
       version: '1.0'
