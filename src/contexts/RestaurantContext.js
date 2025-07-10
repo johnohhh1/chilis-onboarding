@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const RestaurantContext = createContext();
 
@@ -20,7 +20,7 @@ export const RestaurantProvider = ({ children }) => {
   const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
   // Load restaurants from API
-  const loadRestaurants = async () => {
+  const loadRestaurants = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/restaurants`);
@@ -41,7 +41,7 @@ export const RestaurantProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL, selectedRestaurant]);
 
   // Create new restaurant
   const createRestaurant = async (restaurantData) => {
