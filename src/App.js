@@ -335,46 +335,47 @@ const OnboardingApp = () => {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-red-600">605 Team Member Onboarding Tracker</h1>
-              <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  <Clock size={16} />
-                  {lastSaved ? `Last saved: ${lastSaved.toLocaleString()}` : 'Not saved yet'}
+          {/* Header Section */}
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-red-600 mb-4">605 Team Member Onboarding Tracker</h1>
+            <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+              <span className="flex items-center gap-1">
+                <Clock size={16} />
+                {lastSaved ? `Last saved: ${lastSaved.toLocaleString()}` : 'Not saved yet'}
+              </span>
+              {hasUnsavedChanges && (
+                <span className="flex items-center gap-1 text-orange-600">
+                  <AlertCircle size={16} />
+                  Unsaved changes
                 </span>
-                {hasUnsavedChanges && (
-                  <span className="flex items-center gap-1 text-orange-600">
-                    <AlertCircle size={16} />
-                    Unsaved changes
-                  </span>
-                )}
-              </div>
+              )}
             </div>
-            <div className="flex gap-2">
+            
+            {/* Action Buttons - Mobile Friendly */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <button
                 onClick={saveData}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                className={`px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium ${
                   hasUnsavedChanges 
                     ? 'bg-orange-600 hover:bg-orange-700 text-white' 
                     : 'bg-gray-300 text-gray-600'
                 }`}
               >
-                <Save size={20} />
+                <Save size={18} />
                 Save Data
               </button>
               <button
                 onClick={exportAllData}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium"
               >
-                <Download size={20} />
+                <Download size={18} />
                 Export All
               </button>
               <button
                 onClick={() => setShowAddForm(true)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium sm:col-span-2 lg:col-span-1"
               >
-                <Plus size={20} />
+                <Plus size={18} />
                 Add New Team Member
               </button>
             </div>
@@ -384,7 +385,7 @@ const OnboardingApp = () => {
           {showAddForm && (
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h2 className="text-xl font-semibold mb-4">Add New Team Member</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <input
                     type="text"
@@ -435,26 +436,30 @@ const OnboardingApp = () => {
                   />
                   {formErrors.position && <p className="text-red-500 text-xs mt-1">{formErrors.position}</p>}
                 </div>
-                <input
-                  type="text"
-                  placeholder="TM ID (if known)"
-                  value={newMember.tmId}
-                  onChange={(e) => setNewMember({...newMember, tmId: e.target.value})}
-                  className="border border-gray-300 rounded-lg px-3 py-2"
-                />
-                <input
-                  type="email"
-                  placeholder="Restaurant Email (for reports)"
-                  value={newMember.restaurantEmail}
-                  onChange={(e) => setNewMember({...newMember, restaurantEmail: e.target.value})}
-                  className="border border-gray-300 rounded-lg px-3 py-2"
-                />
+                <div>
+                  <input
+                    type="text"
+                    placeholder="TM ID (if known)"
+                    value={newMember.tmId}
+                    onChange={(e) => setNewMember({...newMember, tmId: e.target.value})}
+                    className="border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="email"
+                    placeholder="Restaurant Email (for reports)"
+                    value={newMember.restaurantEmail}
+                    onChange={(e) => setNewMember({...newMember, restaurantEmail: e.target.value})}
+                    className="border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
               </div>
               <p className="text-sm text-gray-600 mt-2">* Required fields</p>
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-col sm:flex-row gap-2 mt-4">
                 <button
                   onClick={addTeamMember}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1"
                 >
                   Add Team Member
                 </button>
@@ -463,7 +468,7 @@ const OnboardingApp = () => {
                     setShowAddForm(false);
                     setFormErrors({});
                   }}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex-1"
                 >
                   Cancel
                 </button>
@@ -473,29 +478,29 @@ const OnboardingApp = () => {
 
           {/* Summary Statistics */}
           {teamMembers.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-blue-100 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800">Total Members</h3>
-                <p className="text-2xl font-bold text-blue-900">{teamMembers.length}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+              <div className="bg-blue-100 p-3 md:p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 text-sm md:text-base">Total Members</h3>
+                <p className="text-xl md:text-2xl font-bold text-blue-900">{teamMembers.length}</p>
               </div>
-              <div className="bg-green-100 p-4 rounded-lg">
-                <h3 className="font-semibold text-green-800">Completed</h3>
-                <p className="text-2xl font-bold text-green-900">
+              <div className="bg-green-100 p-3 md:p-4 rounded-lg">
+                <h3 className="font-semibold text-green-800 text-sm md:text-base">Completed</h3>
+                <p className="text-xl md:text-2xl font-bold text-green-900">
                   {teamMembers.filter(m => getCompletionStats(m).percentage === 100).length}
                 </p>
               </div>
-              <div className="bg-yellow-100 p-4 rounded-lg">
-                <h3 className="font-semibold text-yellow-800">In Progress</h3>
-                <p className="text-2xl font-bold text-yellow-900">
+              <div className="bg-yellow-100 p-3 md:p-4 rounded-lg">
+                <h3 className="font-semibold text-yellow-800 text-sm md:text-base">In Progress</h3>
+                <p className="text-xl md:text-2xl font-bold text-yellow-900">
                   {teamMembers.filter(m => {
                     const stats = getCompletionStats(m);
                     return stats.percentage > 0 && stats.percentage < 100;
                   }).length}
                 </p>
               </div>
-              <div className="bg-red-100 p-4 rounded-lg">
-                <h3 className="font-semibold text-red-800">Not Started</h3>
-                <p className="text-2xl font-bold text-red-900">
+              <div className="bg-red-100 p-3 md:p-4 rounded-lg">
+                <h3 className="font-semibold text-red-800 text-sm md:text-base">Not Started</h3>
+                <p className="text-xl md:text-2xl font-bold text-red-900">
                   {teamMembers.filter(m => getCompletionStats(m).percentage === 0).length}
                 </p>
               </div>
@@ -503,95 +508,106 @@ const OnboardingApp = () => {
           )}
 
           {/* Team Members List */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {teamMembers.map(member => {
               const stats = getCompletionStats(member);
               const remainingTasks = getRemainingTasks(member);
               
               return (
-                <div key={member.id} className="bg-white border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <User className="text-gray-600" size={24} />
-                      <div>
-                        {editingMember === member.id ? (
-                          <input
-                            type="text"
-                            value={member.name}
-                            onChange={(e) => updateMemberInfo(member.id, 'name', e.target.value)}
-                            className="border border-gray-300 rounded px-2 py-1 font-semibold"
-                          />
-                        ) : (
-                          <h3 className="text-lg font-semibold">{member.name}</h3>
-                        )}
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <Calendar size={16} />
-                            {editingMember === member.id ? (
-                              <input
-                                type="date"
-                                value={member.startDate}
-                                onChange={(e) => updateMemberInfo(member.id, 'startDate', e.target.value)}
-                                className="border border-gray-300 rounded px-1 py-0.5"
-                              />
-                            ) : (
-                              `${member.startDate} at ${member.startTime}`
-                            )}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Phone size={16} />
-                            {editingMember === member.id ? (
-                              <input
-                                type="tel"
-                                value={member.phone}
-                                onChange={(e) => updateMemberInfo(member.id, 'phone', e.target.value)}
-                                className="border border-gray-300 rounded px-1 py-0.5"
-                              />
-                            ) : (
-                              member.phone
-                            )}
-                          </span>
+                <div key={member.id} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
+                  {/* Header with mobile-friendly layout */}
+                  <div className="mb-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <User className="text-gray-600 mt-1" size={20} />
+                        <div className="flex-1 min-w-0">
+                          {editingMember === member.id ? (
+                            <input
+                              type="text"
+                              value={member.name}
+                              onChange={(e) => updateMemberInfo(member.id, 'name', e.target.value)}
+                              className="border border-gray-300 rounded px-2 py-1 font-semibold w-full"
+                            />
+                          ) : (
+                            <h3 className="text-lg font-semibold break-words">{member.name}</h3>
+                          )}
+                          
+                          {/* Mobile-friendly info layout */}
+                          <div className="space-y-1 mt-2">
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                              <Calendar size={14} />
+                              {editingMember === member.id ? (
+                                <input
+                                  type="date"
+                                  value={member.startDate}
+                                  onChange={(e) => updateMemberInfo(member.id, 'startDate', e.target.value)}
+                                  className="border border-gray-300 rounded px-1 py-0.5 text-sm"
+                                />
+                              ) : (
+                                <span className="break-words">{member.startDate} at {member.startTime}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                              <Phone size={14} />
+                              {editingMember === member.id ? (
+                                <input
+                                  type="tel"
+                                  value={member.phone}
+                                  onChange={(e) => updateMemberInfo(member.id, 'phone', e.target.value)}
+                                  className="border border-gray-300 rounded px-1 py-0.5 text-sm"
+                                />
+                              ) : (
+                                <span className="break-words">{member.phone}</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 break-words">
+                              Position: {member.position} | TM ID: {member.tmId || 'Pending'}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          Position: {member.position} | TM ID: {member.tmId || 'Pending'}
-                        </p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {editingMember === member.id ? (
+                      
+                      {/* Action buttons - mobile friendly */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {editingMember === member.id ? (
+                          <button
+                            onClick={() => setEditingMember(null)}
+                            className="text-green-600 hover:text-green-800 p-1"
+                            title="Save"
+                          >
+                            <Save size={18} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setEditingMember(member.id)}
+                            className="text-blue-600 hover:text-blue-800 p-1"
+                            title="Edit"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                        )}
                         <button
-                          onClick={() => setEditingMember(null)}
-                          className="text-green-600 hover:text-green-800"
+                          onClick={() => sendEmail(member)}
+                          className="text-green-600 hover:text-green-800 p-1"
+                          title="Send email report"
                         >
-                          <Save size={20} />
+                          <Mail size={18} />
                         </button>
-                      ) : (
                         <button
-                          onClick={() => setEditingMember(member.id)}
-                          className="text-blue-600 hover:text-blue-800"
+                          onClick={() => printReport(member)}
+                          className="text-gray-600 hover:text-gray-800 p-1"
+                          title="Print report"
                         >
-                          <Edit2 size={20} />
+                          <Printer size={18} />
                         </button>
-                      )}
-                      <button
-                        onClick={() => sendEmail(member)}
-                        className="text-green-600 hover:text-green-800"
-                        title="Send email report"
-                      >
-                        <Mail size={20} />
-                      </button>
-                      <button
-                        onClick={() => printReport(member)}
-                        className="text-gray-600 hover:text-gray-800"
-                      >
-                        <Printer size={20} />
-                      </button>
-                      <button
-                        onClick={() => deleteMember(member.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                        <button
+                          onClick={() => deleteMember(member.id)}
+                          className="text-red-600 hover:text-red-800 p-1"
+                          title="Delete"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -610,24 +626,26 @@ const OnboardingApp = () => {
                   </div>
 
                   {/* Checklist */}
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                  <div className="space-y-2 max-h-80 md:max-h-96 overflow-y-auto">
                     {checklistItems.map(item => (
-                      <div key={item.id} className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
+                      <div key={item.id} className="flex items-start gap-2 p-2 rounded hover:bg-gray-50">
                         <button
                           onClick={() => updateChecklist(member.id, item.id, !member.checklist[item.id])}
-                          className="mt-0.5 flex-shrink-0"
+                          className="mt-0.5 flex-shrink-0 p-1"
                         >
                           {member.checklist[item.id] ? (
-                            <CheckCircle className="text-green-600" size={20} />
+                            <CheckCircle className="text-green-600" size={18} />
                           ) : (
-                            <Circle className="text-gray-400" size={20} />
+                            <Circle className="text-gray-400" size={18} />
                           )}
                         </button>
-                        <div className="flex-1">
-                          <span className={`text-sm px-2 py-1 rounded-full border ${stepColors[item.step]}`}>
-                            Step {item.step}
-                          </span>
-                          <p className={`text-sm mt-1 ${member.checklist[item.id] ? 'text-gray-500 line-through' : ''}`}>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            <span className={`text-xs px-2 py-1 rounded-full border ${stepColors[item.step]}`}>
+                              Step {item.step}
+                            </span>
+                          </div>
+                          <p className={`text-sm ${member.checklist[item.id] ? 'text-gray-500 line-through' : ''} break-words`}>
                             {item.text}
                           </p>
                         </div>
