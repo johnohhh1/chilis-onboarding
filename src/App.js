@@ -85,8 +85,8 @@ const OnboardingApp = () => {
     'iPad cases / straps'
   ];
 
-  // API configuration - use localhost for development, Vercel API routes for production
-  const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001/api');
+  // API configuration - use Vercel API routes for production, localhost for development
+  const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
   const saveData = useCallback(async () => {
     try {
