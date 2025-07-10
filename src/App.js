@@ -86,16 +86,47 @@ const OnboardingApp = () => {
     'iPad cases / straps'
   ];
 
-  // Load data from localStorage on component mount
+  // API configuration
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+
+  // Load data from API on component mount
   useEffect(() => {
-    const savedMembers = localStorage.getItem('chilisOnboardingMembers');
-    const savedTimestamp = localStorage.getItem('chilisOnboardingLastSaved');
-    if (savedMembers) {
-      setTeamMembers(JSON.parse(savedMembers));
-    }
-    if (savedTimestamp) {
-      setLastSaved(new Date(savedTimestamp));
-    }
+    const loadData = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/onboarding-data`);
+        if (response.ok) {
+          const data = await response.json();
+          setTeamMembers(data.teamMembers || []);
+          if (data.lastSaved) {
+            setLastSaved(new Date(data.lastSaved));
+          }
+        } else {
+          console.error('Failed to load data from API');
+          // Fallback to localStorage if API fails
+          const savedMembers = localStorage.getItem('chilisOnboardingMembers');
+          const savedTimestamp = localStorage.getItem('chilisOnboardingLastSaved');
+          if (savedMembers) {
+            setTeamMembers(JSON.parse(savedMembers));
+          }
+          if (savedTimestamp) {
+            setLastSaved(new Date(savedTimestamp));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+        // Fallback to localStorage
+        const savedMembers = localStorage.getItem('chilisOnboardingMembers');
+        const savedTimestamp = localStorage.getItem('chilisOnboardingLastSaved');
+        if (savedMembers) {
+          setTeamMembers(JSON.parse(savedMembers));
+        }
+        if (savedTimestamp) {
+          setLastSaved(new Date(savedTimestamp));
+        }
+      }
+    };
+
+    loadData();
   }, []);
 
   // Auto-save functionality
@@ -110,22 +141,69 @@ const OnboardingApp = () => {
     }
   }, [teamMembers]);
 
-  const saveData = () => {
-    localStorage.setItem('chilisOnboardingMembers', JSON.stringify(teamMembers));
-    const now = new Date();
-    localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
-    setLastSaved(now);
-    setHasUnsavedChanges(false);
+  const saveData = async () => {
+    try {
+      const now = new Date();
+      const dataToSave = {
+        teamMembers,
+        lastSaved: now.toISOString()
+      };
+
+      const response = await fetch(`${API_BASE_URL}/onboarding-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSave)
+      });
+
+      if (response.ok) {
+        setLastSaved(now);
+        setHasUnsavedChanges(false);
+        console.log('Data saved to server successfully');
+      } else {
+        console.error('Failed to save data to server');
+        // Fallback to localStorage
+        localStorage.setItem('chilisOnboardingMembers', JSON.stringify(teamMembers));
+        localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
+        setLastSaved(now);
+        setHasUnsavedChanges(false);
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      // Fallback to localStorage
+      const now = new Date();
+      localStorage.setItem('chilisOnboardingMembers', JSON.stringify(teamMembers));
+      localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
+      setLastSaved(now);
+      setHasUnsavedChanges(false);
+    }
   };
 
   // Enhanced data persistence with backup
-  const backupData = () => {
-    const backup = {
-      data: teamMembers,
-      timestamp: new Date().toISOString(),
-      version: '1.0'
-    };
-    localStorage.setItem('chilisOnboardingBackup', JSON.stringify(backup));
+  const backupData = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/backup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          teamMembers,
+          lastSaved: lastSaved?.toISOString()
+        })
+      });
+
+      if (response.ok) {
+        alert('Backup created successfully!');
+      } else {
+        console.error('Failed to create backup');
+        alert('Failed to create backup. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating backup:', error);
+      alert('Error creating backup. Please try again.');
+    }
   };
 
   const validateForm = () => {

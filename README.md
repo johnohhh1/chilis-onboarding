@@ -1,295 +1,138 @@
-# 605 Team Member Onboarding Tracker 🚀
+# 🌶️ Chili's Onboarding Tracker
 
-> **A comprehensive digital solution for managing restaurant team member onboarding with real-time progress tracking, automated reporting, and seamless email integration.**
-
-![App Preview](https://img.shields.io/badge/Status-Production%20Ready-brightgreen) ![React](https://img.shields.io/badge/React-18.0+-blue) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.0+-06B6D4)
+A comprehensive onboarding management system for tracking new hires and ensuring they don't get lost in bureaucracy.
 
 ## ✨ Features
 
-### 📋 **Smart Checklist Management**
-- **40+ Step Comprehensive Checklist** based on official Chili's onboarding procedures
-- **5-Phase Organization**: Setup → Pre-First Day → Materials → First Day → Post-First Day
-- **Color-coded Steps** for easy visual identification
-- **Real-time Progress Tracking** with completion percentages
+- **Multi-User Support**: Shared data across all managers and HR staff
+- **Real-time Dashboard**: Overview of all new hires with status tracking
+- **Task Management**: Check off onboarding tasks with progress tracking
+- **Data Persistence**: Server-side storage with automatic backups
+- **Mobile-Friendly**: Responsive design that works on all devices
+- **Auto-Save**: Changes are automatically saved to prevent data loss
 
-### 👥 **Team Member Management**
-- **Required Field Validation** (Name, Start Date & Time, Phone, Position)
-- **Inline Editing** of team member information
-- **Smart Data Persistence** with localStorage
-- **Last Modified Tracking** for accountability
-
-### 📊 **Progress Analytics**
-- **Live Dashboard** showing total, completed, in-progress, and not-started members
-- **Visual Progress Bars** for each team member
-- **Completion Statistics** at a glance
-- **Task Remaining Counter** for quick status checks
-
-### 📧 **Email Integration**
-- **One-Click Email Reports** that open your device's email app
-- **Pre-formatted Report Content** with all essential information
-- **Restaurant Email Support** for easy communication
-- **Professional Report Templates**
-
-### 🖨️ **Print-Ready Reports**
-- **Daily Action Reports** showing remaining tasks
-- **Supply Checklists** for preparation
-- **Professional Formatting** for management review
-- **Complete Team Member Profiles**
-
-### 💾 **Data Management**
-- **Auto-Save Functionality** with unsaved changes indicators
-- **Export All Data** as JSON for backups
-- **Offline Capability** - works without internet
-- **Data Recovery** from browser storage
-
-## 🏗️ **Tech Stack**
-
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **React** | Frontend Framework | 18.0+ |
-| **TailwindCSS** | Styling & Design | 3.0+ |
-| **Lucide React** | Icons & UI Elements | Latest |
-| **localStorage** | Data Persistence | Browser Native |
-| **PostCSS** | CSS Processing | Latest |
-
-## 🚀 **Quick Start**
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 14+ installed
-- npm or yarn package manager
-- Modern web browser
+- Node.js (v14 or higher)
+- npm or yarn
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/605-onboarding-tracker.git
-
-# Navigate to project directory
-cd 605-onboarding-tracker
-
-# Install dependencies
-npm install
-
-# Install required packages
-npm install lucide-react
-npm install -D tailwindcss postcss autoprefixer @tailwindcss/postcss7-compat
-
-# Start development server
-npm start
-```
-
-### Configuration
-
-1. **Configure Tailwind CSS** (if not auto-configured):
+1. **Clone the repository**
    ```bash
-   # Create config files
-   npx tailwindcss init -p
+   git clone <your-repo-url>
+   cd chilis-onboarding
    ```
 
-2. **Update `src/index.css`**:
-   ```css
-   @tailwind base;
-   @tailwind components;
-   @tailwind utilities;
-   ```
-
-3. **Launch Application**:
+2. **Install dependencies**
    ```bash
-   npm start
+   npm install
    ```
-   Opens automatically at `http://localhost:3000`
 
-## 📱 **Usage Guide**
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-### Adding New Team Members
-1. Click **"Add New Team Member"**
-2. Fill required fields (marked with *)
-3. Click **"Add Team Member"**
-4. Start checking off completed tasks
+This will start both the backend API server (port 3001) and the React frontend (port 3000).
 
-### Managing Progress
-- ✅ **Check tasks** by clicking the circles
-- 📝 **Edit information** using the edit button
-- 💾 **Save changes** using the save button
-- 📧 **Send reports** via email button
-- 🖨️ **Print reports** using print button
+## 📁 Project Structure
 
-### Email Reports
-1. Click the **mail icon** next to any team member
-2. Your device's email app opens automatically
-3. Report is pre-formatted and ready to send
-4. Add restaurant email in team member profile for auto-addressing
-
-### Data Management
-- **Auto-Save**: Click "Save Data" to persist changes
-- **Export**: Use "Export All" to backup data as JSON
-- **Import**: Upload JSON files to restore data
-- **Archive**: Use "Complete & Archive" for finished onboarding
-
-## 🏢 **Multi-Restaurant Setup**
-
-The app is designed to be easily customizable for different restaurant brands:
-
-### Current Configuration
-- **Title**: "605 Team Member Onboarding Tracker"
-- **Processes**: Based on Chili's official procedures
-- **Branding**: Red color scheme matching restaurant theme
-
-### Customization Options
-- Update app title in `src/App.js`
-- Modify color scheme in Tailwind classes
-- Adjust checklist items for different procedures
-- Customize email templates and report formats
-
-## 📋 **Onboarding Checklist Overview**
-
-### Step 1: Setting Up New TM (12 tasks)
-- Call candidate and extend offer
-- Provide start date and overview
-- KROW system setup
-- Oracle configuration
-- Schedule VFDO training
-
-### Step 2: Prior to First Day (2 tasks)
-- Verify onboarding completion
-- Assign job codes and pay rates
-
-### Step 3: Prepare Materials (6 tasks)
-- Training materials preparation
-- Welcome gifts and supplies
-- System access setup
-
-### Step 4: First Day (16 tasks)
-- Welcome and introduction
-- System training and setup
-- Documentation completion
-- Training path initialization
-
-### Step 5: Post First Day (4 tasks)
-- Gratshare enablement
-- Webinar scheduling
-- Survey completion
-- Final verification
-
-## 🔧 **Development**
-
-### Project Structure
 ```
-src/
-├── App.js              # Main application component
-├── index.js            # React DOM entry point
-├── index.css           # Tailwind CSS imports
-└── components/         # Future component organization
+chilis-onboarding/
+├── src/                    # React frontend
+│   ├── App.js             # Main application component
+│   └── index.js           # React entry point
+├── server.js              # Express backend API
+├── data/                  # Data storage (auto-created)
+│   └── onboarding-data.json
+└── package.json
 ```
 
-### Key Functions
-- `addTeamMember()` - Creates new team member with validation
-- `updateChecklist()` - Manages task completion status
-- `generateEmailBody()` - Formats email reports
-- `printReport()` - Creates print-ready documents
-- `saveData()` - Persists data to localStorage
+## 🔧 Configuration
 
-### State Management
-- **React useState** for component state
-- **localStorage** for data persistence
-- **useEffect** for data loading and change tracking
+### Environment Variables
 
-## 🚢 **Deployment**
+Create a `.env` file in the root directory:
 
-### Vercel (Recommended)
-```bash
-# Install Vercel CLI
-npm i -g vercel
+```env
+# API Configuration
+REACT_APP_API_URL=http://localhost:3001/api
 
-# Deploy to Vercel
-vercel
-
-# Follow prompts for configuration
+# Server Configuration
+PORT=3001
 ```
 
-### Netlify
-```bash
-# Build production version
-npm run build
+## 📊 API Endpoints
 
-# Deploy build folder to Netlify
-# Or connect GitHub repo for auto-deployment
-```
+- `GET /api/onboarding-data` - Retrieve all onboarding data
+- `POST /api/onboarding-data` - Save onboarding data
+- `POST /api/backup` - Create a manual backup
+- `GET /api/health` - Health check endpoint
 
-### Traditional Hosting
-```bash
-# Create production build
-npm run build
+## 🗄️ Data Storage
 
-# Upload 'build' folder contents to web server
-```
+All data is stored in JSON files in the `data/` directory:
+- `onboarding-data.json` - Main data file
+- `backup-*.json` - Manual backup files
 
-## 🔐 **Data & Privacy**
+## 🚀 Deployment Options
 
-- **Local Storage Only**: No data sent to external servers
-- **Browser-Based**: All data stays on user's device
-- **Offline Capable**: Works without internet connection
-- **Export/Import**: Full data control and portability
+### Option 1: Simple Hosting (Recommended)
+- **Frontend**: Deploy to Vercel, Netlify, or GitHub Pages
+- **Backend**: Deploy to Railway, Render, or Heroku
+- **Database**: Use the built-in file storage or upgrade to a proper database
 
-## 🛠️ **Troubleshooting**
+### Option 2: Full-Stack Platform
+- Deploy to platforms like Railway, Render, or Heroku that support both frontend and backend
 
-### Common Issues
+### Option 3: Self-Hosted
+- Deploy to your own server or VPS
+- Use a reverse proxy (nginx) to serve both frontend and backend
 
-**App not styled properly:**
-```bash
-# Ensure Tailwind is configured
-npm install -D tailwindcss postcss autoprefixer
-# Check src/index.css has @tailwind directives
-```
+## 🔒 Security Considerations
 
-**Icons not showing:**
-```bash
-# Install lucide-react
-npm install lucide-react
-```
+- The current implementation uses file-based storage
+- For production, consider:
+  - Adding authentication/authorization
+  - Using a proper database (PostgreSQL, MongoDB)
+  - Implementing rate limiting
+  - Adding HTTPS
+  - Setting up proper CORS policies
 
-**Build errors:**
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
+## 🛠️ Development
 
-### Performance Tips
-- Use "Save Data" regularly to prevent data loss
-- Export data weekly for backups
-- Archive completed team members to improve performance
-- Clear browser cache if experiencing issues
+### Available Scripts
 
-## 🤝 **Contributing**
+- `npm run dev` - Start both frontend and backend
+- `npm run server` - Start only the backend server
+- `npm start` - Start only the React frontend
+- `npm run build` - Build for production
+
+### Adding New Features
+
+1. **Backend**: Add new routes in `server.js`
+2. **Frontend**: Update components in `src/App.js`
+3. **Data**: The data structure is flexible and can be extended
+
+## 📈 Future Enhancements
+
+- [ ] User authentication and roles
+- [ ] Email notifications for overdue tasks
+- [ ] Integration with HR systems
+- [ ] Advanced reporting and analytics
+- [ ] Mobile app version
+- [ ] Real-time collaboration features
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-## 📄 **License**
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 **Acknowledgments**
-
-- **Chili's Restaurant Management** for providing comprehensive onboarding procedures
-- **React Community** for excellent documentation and support
-- **Tailwind CSS** for beautiful, responsive design system
-- **Lucide** for clean, professional icons
-
-## 📞 **Support**
-
-For issues, questions, or feature requests:
-- Open an issue on GitHub
-- Contact: [johnohhh1@proton.me]
-
-
----
-
-**Built with ❤️ for restaurant management teams everywhere**
-
-*Making team member onboarding simple, trackable, and efficient.*
+This project is licensed under the MIT License.
