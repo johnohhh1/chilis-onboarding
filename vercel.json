@@ -18,12 +18,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "POSTGRES_URL": "@postgres_url",
-    "POSTGRES_HOST": "@postgres_host",
-    "POSTGRES_DATABASE": "@postgres_database",
-    "POSTGRES_USERNAME": "@postgres_username",
-    "POSTGRES_PASSWORD": "@postgres_password"
-  }
+  ]
 } 
