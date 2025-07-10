@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Building2, Users, CheckCircle, Clock, TrendingUp, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Building2, Users, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import { useRestaurant } from '../contexts/RestaurantContext';
 
 const MultiRestaurantDashboard = () => {
@@ -8,11 +8,7 @@ const MultiRestaurantDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
-  useEffect(() => {
-    loadAllStats();
-  }, [restaurants]);
-
-  const loadAllStats = async () => {
+  const loadAllStats = useCallback(async () => {
     try {
       setLoading(true);
       const stats = await getRestaurantStats();
@@ -24,7 +20,11 @@ const MultiRestaurantDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getRestaurantStats]);
+
+  useEffect(() => {
+    loadAllStats();
+  }, [loadAllStats]);
 
   const getTotalStats = () => {
     return allStats.reduce((totals, stat) => ({

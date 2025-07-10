@@ -90,7 +90,7 @@ export const RestaurantProvider = ({ children }) => {
   // Load restaurants on component mount
   useEffect(() => {
     loadRestaurants();
-  }, []);
+  }, [loadRestaurants]);
 
   const value = {
     restaurants,

@@ -2,26 +2,6 @@ import { sql } from '@vercel/postgres';
 
 // Database utility functions for Vercel Postgres
 
-// Fallback data storage for when Postgres is not configured
-let fallbackData = {
-  teamMembers: [],
-  lastSaved: null,
-  version: '1.0'
-};
-
-let fallbackRestaurants = [
-  {
-    id: 1,
-    name: 'Chili\'s - Main Location',
-    store_number: 'C00605',
-    address: 'Main Location',
-    manager_name: 'Default Manager',
-    manager_email: 'manager@chilis.com',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
 export async function initializeDatabase() {
   try {
     // Create the onboarding_data table if it doesn't exist
@@ -100,7 +80,6 @@ export async function initializeDatabase() {
     return true;
   } catch (error) {
     console.error('Error initializing database:', error);
-    console.log('Using fallback storage mode');
     return false;
   }
 }
@@ -142,10 +121,9 @@ export async function getOnboardingData(restaurantId = null) {
     }
   } catch (error) {
     console.error('Error getting onboarding data:', error);
-    // Return fallback data
     return {
-      teamMembers: fallbackData.teamMembers,
-      lastSaved: fallbackData.lastSaved,
+      teamMembers: [],
+      lastSaved: null,
       version: '1.0',
       restaurantId: restaurantId
     };
@@ -182,14 +160,9 @@ export async function saveOnboardingData(teamMembers, restaurantId = null) {
     };
   } catch (error) {
     console.error('Error saving onboarding data:', error);
-    // Save to fallback storage
-    fallbackData.teamMembers = teamMembers;
-    fallbackData.lastSaved = new Date().toISOString();
-    
     return {
-      success: true,
-      message: 'Data saved to fallback storage',
-      timestamp: fallbackData.lastSaved
+      success: false,
+      error: 'Failed to save data'
     };
   }
 }
@@ -203,7 +176,7 @@ export async function getAllRestaurants() {
     return result.rows;
   } catch (error) {
     console.error('Error getting restaurants:', error);
-    return fallbackRestaurants;
+    return [];
   }
 }
 
@@ -227,15 +200,7 @@ export async function createRestaurant(restaurantData) {
     return result.rows[0];
   } catch (error) {
     console.error('Error creating restaurant:', error);
-    // Add to fallback storage
-    const newRestaurant = {
-      id: fallbackRestaurants.length + 1,
-      ...restaurantData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    fallbackRestaurants.push(newRestaurant);
-    return newRestaurant;
+    throw error;
   }
 }
 

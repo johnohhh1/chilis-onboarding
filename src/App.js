@@ -131,7 +131,7 @@ const OnboardingApp = () => {
       setLastSaved(now);
       setHasUnsavedChanges(false);
     }
-  }, [teamMembers, API_BASE_URL]);
+  }, [teamMembers, API_BASE_URL, selectedRestaurant?.id]);
 
   // Load data from API on component mount
   useEffect(() => {
