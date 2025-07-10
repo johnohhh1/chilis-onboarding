@@ -7,6 +7,8 @@ const OnboardingApp = () => {
   const [editingMember, setEditingMember] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' or 'detail'
+  const [selectedMember, setSelectedMember] = useState(null);
   const [newMember, setNewMember] = useState({
     name: '',
     startDate: '',
@@ -96,9 +98,16 @@ const OnboardingApp = () => {
     }
   }, []);
 
-  // Track changes
+  // Auto-save functionality
   useEffect(() => {
-    setHasUnsavedChanges(true);
+    if (teamMembers.length > 0) {
+      setHasUnsavedChanges(true);
+      const autoSaveTimer = setTimeout(() => {
+        saveData();
+      }, 2000); // Auto-save after 2 seconds of no changes
+      
+      return () => clearTimeout(autoSaveTimer);
+    }
   }, [teamMembers]);
 
   const saveData = () => {
@@ -107,6 +116,16 @@ const OnboardingApp = () => {
     localStorage.setItem('chilisOnboardingLastSaved', now.toISOString());
     setLastSaved(now);
     setHasUnsavedChanges(false);
+  };
+
+  // Enhanced data persistence with backup
+  const backupData = () => {
+    const backup = {
+      data: teamMembers,
+      timestamp: new Date().toISOString(),
+      version: '1.0'
+    };
+    localStorage.setItem('chilisOnboardingBackup', JSON.stringify(backup));
   };
 
   const validateForm = () => {
@@ -188,6 +207,61 @@ const OnboardingApp = () => {
 
   const getRemainingTasks = (member) => {
     return checklistItems.filter(item => !member.checklist[item.id]);
+  };
+
+  // Dashboard functions
+  const getDashboardStats = () => {
+    const total = teamMembers.length;
+    const completed = teamMembers.filter(m => getCompletionStats(m).percentage === 100).length;
+    const inProgress = teamMembers.filter(m => {
+      const stats = getCompletionStats(m);
+      return stats.percentage > 0 && stats.percentage < 100;
+    }).length;
+    const notStarted = teamMembers.filter(m => getCompletionStats(m).percentage === 0).length;
+    const overdue = teamMembers.filter(m => {
+      const startDate = new Date(m.startDate);
+      const today = new Date();
+      const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+      return daysSinceStart > 7 && getCompletionStats(m).percentage < 100;
+    }).length;
+
+    return { total, completed, inProgress, notStarted, overdue };
+  };
+
+  const getMembersByStatus = () => {
+    return {
+      completed: teamMembers.filter(m => getCompletionStats(m).percentage === 100),
+      inProgress: teamMembers.filter(m => {
+        const stats = getCompletionStats(m);
+        return stats.percentage > 0 && stats.percentage < 100;
+      }),
+      notStarted: teamMembers.filter(m => getCompletionStats(m).percentage === 0),
+      overdue: teamMembers.filter(m => {
+        const startDate = new Date(m.startDate);
+        const today = new Date();
+        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        return daysSinceStart > 7 && getCompletionStats(m).percentage < 100;
+      })
+    };
+  };
+
+  const getUrgentTasks = () => {
+    const urgent = [];
+    teamMembers.forEach(member => {
+      const remaining = getRemainingTasks(member);
+      const startDate = new Date(member.startDate);
+      const today = new Date();
+      const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceStart > 3 && remaining.length > 0) {
+        urgent.push({
+          member,
+          daysOverdue: daysSinceStart,
+          remainingTasks: remaining.length
+        });
+      }
+    });
+    return urgent.sort((a, b) => b.daysOverdue - a.daysOverdue);
   };
 
   const generateEmailBody = (member) => {
@@ -351,6 +425,30 @@ const OnboardingApp = () => {
               )}
             </div>
             
+            {/* Navigation Tabs */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <button
+                onClick={() => setViewMode('dashboard')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  viewMode === 'dashboard' 
+                    ? 'bg-red-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📊 Dashboard
+              </button>
+              <button
+                onClick={() => setViewMode('detail')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  viewMode === 'detail' 
+                    ? 'bg-red-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                👥 Team Members
+              </button>
+            </div>
+
             {/* Action Buttons - Mobile Friendly */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <button
@@ -476,209 +574,388 @@ const OnboardingApp = () => {
             </div>
           )}
 
-          {/* Summary Statistics */}
-          {teamMembers.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-              <div className="bg-blue-100 p-3 md:p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800 text-sm md:text-base">Total Members</h3>
-                <p className="text-xl md:text-2xl font-bold text-blue-900">{teamMembers.length}</p>
-              </div>
-              <div className="bg-green-100 p-3 md:p-4 rounded-lg">
-                <h3 className="font-semibold text-green-800 text-sm md:text-base">Completed</h3>
-                <p className="text-xl md:text-2xl font-bold text-green-900">
-                  {teamMembers.filter(m => getCompletionStats(m).percentage === 100).length}
-                </p>
-              </div>
-              <div className="bg-yellow-100 p-3 md:p-4 rounded-lg">
-                <h3 className="font-semibold text-yellow-800 text-sm md:text-base">In Progress</h3>
-                <p className="text-xl md:text-2xl font-bold text-yellow-900">
-                  {teamMembers.filter(m => {
-                    const stats = getCompletionStats(m);
-                    return stats.percentage > 0 && stats.percentage < 100;
-                  }).length}
-                </p>
-              </div>
-              <div className="bg-red-100 p-3 md:p-4 rounded-lg">
-                <h3 className="font-semibold text-red-800 text-sm md:text-base">Not Started</h3>
-                <p className="text-xl md:text-2xl font-bold text-red-900">
-                  {teamMembers.filter(m => getCompletionStats(m).percentage === 0).length}
-                </p>
-              </div>
+          {/* Dashboard View */}
+          {viewMode === 'dashboard' && (
+            <div className="space-y-6">
+              {/* Dashboard Overview */}
+              {teamMembers.length > 0 ? (
+                <>
+                  {/* Enhanced Statistics */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6">
+                    <div className="bg-blue-100 p-3 md:p-4 rounded-lg">
+                      <h3 className="font-semibold text-blue-800 text-sm md:text-base">Total Members</h3>
+                      <p className="text-xl md:text-2xl font-bold text-blue-900">{getDashboardStats().total}</p>
+                    </div>
+                    <div className="bg-green-100 p-3 md:p-4 rounded-lg">
+                      <h3 className="font-semibold text-green-800 text-sm md:text-base">Completed</h3>
+                      <p className="text-xl md:text-2xl font-bold text-green-900">{getDashboardStats().completed}</p>
+                    </div>
+                    <div className="bg-yellow-100 p-3 md:p-4 rounded-lg">
+                      <h3 className="font-semibold text-yellow-800 text-sm md:text-base">In Progress</h3>
+                      <p className="text-xl md:text-2xl font-bold text-yellow-900">{getDashboardStats().inProgress}</p>
+                    </div>
+                    <div className="bg-red-100 p-3 md:p-4 rounded-lg">
+                      <h3 className="font-semibold text-red-800 text-sm md:text-base">Not Started</h3>
+                      <p className="text-xl md:text-2xl font-bold text-red-900">{getDashboardStats().notStarted}</p>
+                    </div>
+                    <div className="bg-orange-100 p-3 md:p-4 rounded-lg">
+                      <h3 className="font-semibold text-orange-800 text-sm md:text-base">Overdue</h3>
+                      <p className="text-xl md:text-2xl font-bold text-orange-900">{getDashboardStats().overdue}</p>
+                    </div>
+                  </div>
+
+                  {/* Urgent Alerts */}
+                  {getUrgentTasks().length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                      <h3 className="text-lg font-semibold text-red-800 mb-3">🚨 Urgent Attention Needed</h3>
+                      <div className="space-y-2">
+                        {getUrgentTasks().slice(0, 3).map(({ member, daysOverdue, remainingTasks }) => (
+                          <div key={member.id} className="flex items-center justify-between bg-white p-3 rounded border">
+                            <div>
+                              <p className="font-medium text-red-800">{member.name}</p>
+                              <p className="text-sm text-red-600">
+                                {daysOverdue} days overdue • {remainingTasks} tasks remaining
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setViewMode('detail');
+                              }}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-800 mb-3">📋 Recent Additions</h3>
+                      <div className="space-y-2">
+                        {teamMembers
+                          .sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+                          .slice(0, 3)
+                          .map(member => (
+                            <div key={member.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div>
+                                <p className="font-medium text-sm">{member.name}</p>
+                                <p className="text-xs text-gray-600">{member.position}</p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  setSelectedMember(member);
+                                  setViewMode('detail');
+                                }}
+                                className="text-blue-600 hover:text-blue-800 text-xs"
+                              >
+                                View
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-800 mb-3">🎯 Almost Complete</h3>
+                      <div className="space-y-2">
+                        {teamMembers
+                          .filter(m => {
+                            const stats = getCompletionStats(m);
+                            return stats.percentage >= 80 && stats.percentage < 100;
+                          })
+                          .slice(0, 3)
+                          .map(member => {
+                            const stats = getCompletionStats(member);
+                            return (
+                              <div key={member.id} className="flex items-center justify-between p-2 bg-green-50 rounded">
+                                <div>
+                                  <p className="font-medium text-sm">{member.name}</p>
+                                  <p className="text-xs text-green-600">{stats.percentage}% complete</p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setSelectedMember(member);
+                                    setViewMode('detail');
+                                  }}
+                                  className="text-green-600 hover:text-green-800 text-xs"
+                                >
+                                  Complete
+                                </button>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-800 mb-3">📅 Starting Soon</h3>
+                      <div className="space-y-2">
+                        {teamMembers
+                          .filter(m => {
+                            const startDate = new Date(m.startDate);
+                            const today = new Date();
+                            const daysUntilStart = Math.floor((startDate - today) / (1000 * 60 * 60 * 24));
+                            return daysUntilStart >= 0 && daysUntilStart <= 7;
+                          })
+                          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+                          .slice(0, 3)
+                          .map(member => {
+                            const startDate = new Date(member.startDate);
+                            const today = new Date();
+                            const daysUntilStart = Math.floor((startDate - today) / (1000 * 60 * 60 * 24));
+                            return (
+                              <div key={member.id} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                                <div>
+                                  <p className="font-medium text-sm">{member.name}</p>
+                                  <p className="text-xs text-blue-600">
+                                    {daysUntilStart === 0 ? 'Starting today' : `Starts in ${daysUntilStart} days`}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setSelectedMember(member);
+                                    setViewMode('detail');
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 text-xs"
+                                >
+                                  Prepare
+                                </button>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">👋</div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Chili's Onboarding Tracker</h2>
+                  <p className="text-gray-600 mb-6">Start by adding your first team member to begin tracking their onboarding progress.</p>
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-lg font-medium"
+                  >
+                    Add Your First Team Member
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Team Members List */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {teamMembers.map(member => {
-              const stats = getCompletionStats(member);
-              const remainingTasks = getRemainingTasks(member);
-              
-              return (
-                <div key={member.id} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
-                  {/* Header with mobile-friendly layout */}
-                  <div className="mb-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-start gap-3 flex-1">
-                        <User className="text-gray-600 mt-1" size={20} />
-                        <div className="flex-1 min-w-0">
-                          {editingMember === member.id ? (
-                            <input
-                              type="text"
-                              value={member.name}
-                              onChange={(e) => updateMemberInfo(member.id, 'name', e.target.value)}
-                              className="border border-gray-300 rounded px-2 py-1 font-semibold w-full"
-                            />
-                          ) : (
-                            <h3 className="text-lg font-semibold break-words">{member.name}</h3>
-                          )}
-                          
-                          {/* Mobile-friendly info layout */}
-                          <div className="space-y-1 mt-2">
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <Calendar size={14} />
-                              {editingMember === member.id ? (
-                                <input
-                                  type="date"
-                                  value={member.startDate}
-                                  onChange={(e) => updateMemberInfo(member.id, 'startDate', e.target.value)}
-                                  className="border border-gray-300 rounded px-1 py-0.5 text-sm"
-                                />
-                              ) : (
-                                <span className="break-words">{member.startDate} at {member.startTime}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <Phone size={14} />
-                              {editingMember === member.id ? (
-                                <input
-                                  type="tel"
-                                  value={member.phone}
-                                  onChange={(e) => updateMemberInfo(member.id, 'phone', e.target.value)}
-                                  className="border border-gray-300 rounded px-1 py-0.5 text-sm"
-                                />
-                              ) : (
-                                <span className="break-words">{member.phone}</span>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-500 break-words">
-                              Position: {member.position} | TM ID: {member.tmId || 'Pending'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Action buttons - mobile friendly */}
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {editingMember === member.id ? (
-                          <button
-                            onClick={() => setEditingMember(null)}
-                            className="text-green-600 hover:text-green-800 p-1"
-                            title="Save"
-                          >
-                            <Save size={18} />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setEditingMember(member.id)}
-                            className="text-blue-600 hover:text-blue-800 p-1"
-                            title="Edit"
-                          >
-                            <Edit2 size={18} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => sendEmail(member)}
-                          className="text-green-600 hover:text-green-800 p-1"
-                          title="Send email report"
-                        >
-                          <Mail size={18} />
-                        </button>
-                        <button
-                          onClick={() => printReport(member)}
-                          className="text-gray-600 hover:text-gray-800 p-1"
-                          title="Print report"
-                        >
-                          <Printer size={18} />
-                        </button>
-                        <button
-                          onClick={() => deleteMember(member.id)}
-                          className="text-red-600 hover:text-red-800 p-1"
-                          title="Delete"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
+          {/* Detail View */}
+          {viewMode === 'detail' && (
+            <>
+              {/* Summary Statistics */}
+              {teamMembers.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+                  <div className="bg-blue-100 p-3 md:p-4 rounded-lg">
+                    <h3 className="font-semibold text-blue-800 text-sm md:text-base">Total Members</h3>
+                    <p className="text-xl md:text-2xl font-bold text-blue-900">{teamMembers.length}</p>
                   </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Progress</span>
-                      <span>{stats.completed}/{stats.total} ({stats.percentage}%)</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${stats.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Checklist */}
-                  <div className="space-y-2 max-h-80 md:max-h-96 overflow-y-auto">
-                    {checklistItems.map(item => (
-                      <div key={item.id} className="flex items-start gap-2 p-2 rounded hover:bg-gray-50">
-                        <button
-                          onClick={() => updateChecklist(member.id, item.id, !member.checklist[item.id])}
-                          className="mt-0.5 flex-shrink-0 p-1"
-                        >
-                          {member.checklist[item.id] ? (
-                            <CheckCircle className="text-green-600" size={18} />
-                          ) : (
-                            <Circle className="text-gray-400" size={18} />
-                          )}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap gap-1 mb-1">
-                            <span className={`text-xs px-2 py-1 rounded-full border ${stepColors[item.step]}`}>
-                              Step {item.step}
-                            </span>
-                          </div>
-                          <p className={`text-sm ${member.checklist[item.id] ? 'text-gray-500 line-through' : ''} break-words`}>
-                            {item.text}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="text-sm text-gray-600 mb-2">
-                      {remainingTasks.length > 0 
-                        ? `${remainingTasks.length} tasks remaining` 
-                        : '🎉 All tasks completed!'}
+                  <div className="bg-green-100 p-3 md:p-4 rounded-lg">
+                    <h3 className="font-semibold text-green-800 text-sm md:text-base">Completed</h3>
+                    <p className="text-xl md:text-2xl font-bold text-green-900">
+                      {teamMembers.filter(m => getCompletionStats(m).percentage === 100).length}
                     </p>
-                    {stats.percentage === 100 && (
-                      <button
-                        onClick={() => deleteMember(member.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm"
-                      >
-                        Complete & Archive
-                      </button>
-                    )}
+                  </div>
+                  <div className="bg-yellow-100 p-3 md:p-4 rounded-lg">
+                    <h3 className="font-semibold text-yellow-800 text-sm md:text-base">In Progress</h3>
+                    <p className="text-xl md:text-2xl font-bold text-yellow-900">
+                      {teamMembers.filter(m => {
+                        const stats = getCompletionStats(m);
+                        return stats.percentage > 0 && stats.percentage < 100;
+                      }).length}
+                    </p>
+                  </div>
+                  <div className="bg-red-100 p-3 md:p-4 rounded-lg">
+                    <h3 className="font-semibold text-red-800 text-sm md:text-base">Not Started</h3>
+                    <p className="text-xl md:text-2xl font-bold text-red-900">
+                      {teamMembers.filter(m => getCompletionStats(m).percentage === 0).length}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              )}
 
-          {teamMembers.length === 0 && (
-            <div className="text-center py-12">
-              <User className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-gray-600">No team members added yet. Click "Add New Team Member" to get started.</p>
-            </div>
+              {/* Team Members List */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                {teamMembers.map(member => {
+                  const stats = getCompletionStats(member);
+                  const remainingTasks = getRemainingTasks(member);
+                  
+                  return (
+                    <div key={member.id} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
+                      {/* Header with mobile-friendly layout */}
+                      <div className="mb-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-3 flex-1">
+                            <User className="text-gray-600 mt-1" size={20} />
+                            <div className="flex-1 min-w-0">
+                              {editingMember === member.id ? (
+                                <input
+                                  type="text"
+                                  value={member.name}
+                                  onChange={(e) => updateMemberInfo(member.id, 'name', e.target.value)}
+                                  className="border border-gray-300 rounded px-2 py-1 font-semibold w-full"
+                                />
+                              ) : (
+                                <h3 className="text-lg font-semibold break-words">{member.name}</h3>
+                              )}
+                              
+                              {/* Mobile-friendly info layout */}
+                              <div className="space-y-1 mt-2">
+                                <div className="flex items-center gap-1 text-sm text-gray-600">
+                                  <Calendar size={14} />
+                                  {editingMember === member.id ? (
+                                    <input
+                                      type="date"
+                                      value={member.startDate}
+                                      onChange={(e) => updateMemberInfo(member.id, 'startDate', e.target.value)}
+                                      className="border border-gray-300 rounded px-1 py-0.5 text-sm"
+                                    />
+                                  ) : (
+                                    <span className="break-words">{member.startDate} at {member.startTime}</span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1 text-sm text-gray-600">
+                                  <Phone size={14} />
+                                  {editingMember === member.id ? (
+                                    <input
+                                      type="tel"
+                                      value={member.phone}
+                                      onChange={(e) => updateMemberInfo(member.id, 'phone', e.target.value)}
+                                      className="border border-gray-300 rounded px-1 py-0.5 text-sm"
+                                    />
+                                  ) : (
+                                    <span className="break-words">{member.phone}</span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 break-words">
+                                  Position: {member.position} | TM ID: {member.tmId || 'Pending'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Action buttons - mobile friendly */}
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {editingMember === member.id ? (
+                              <button
+                                onClick={() => setEditingMember(null)}
+                                className="text-green-600 hover:text-green-800 p-1"
+                                title="Save"
+                              >
+                                <Save size={18} />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setEditingMember(member.id)}
+                                className="text-blue-600 hover:text-blue-800 p-1"
+                                title="Edit"
+                              >
+                                <Edit2 size={18} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => sendEmail(member)}
+                              className="text-green-600 hover:text-green-800 p-1"
+                              title="Send email report"
+                            >
+                              <Mail size={18} />
+                            </button>
+                            <button
+                              onClick={() => printReport(member)}
+                              className="text-gray-600 hover:text-gray-800 p-1"
+                              title="Print report"
+                            >
+                              <Printer size={18} />
+                            </button>
+                            <button
+                              onClick={() => deleteMember(member.id)}
+                              className="text-red-600 hover:text-red-800 p-1"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Progress</span>
+                          <span>{stats.completed}/{stats.total} ({stats.percentage}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${stats.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Checklist */}
+                      <div className="space-y-2 max-h-80 md:max-h-96 overflow-y-auto">
+                        {checklistItems.map(item => (
+                          <div key={item.id} className="flex items-start gap-2 p-2 rounded hover:bg-gray-50">
+                            <button
+                              onClick={() => updateChecklist(member.id, item.id, !member.checklist[item.id])}
+                              className="mt-0.5 flex-shrink-0 p-1"
+                            >
+                              {member.checklist[item.id] ? (
+                                <CheckCircle className="text-green-600" size={18} />
+                              ) : (
+                                <Circle className="text-gray-400" size={18} />
+                              )}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap gap-1 mb-1">
+                                <span className={`text-xs px-2 py-1 rounded-full border ${stepColors[item.step]}`}>
+                                  Step {item.step}
+                                </span>
+                              </div>
+                              <p className={`text-sm ${member.checklist[item.id] ? 'text-gray-500 line-through' : ''} break-words`}>
+                                {item.text}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Quick Actions */}
+                      <div className="mt-4 pt-4 border-t">
+                        <p className="text-sm text-gray-600 mb-2">
+                          {remainingTasks.length > 0 
+                            ? `${remainingTasks.length} tasks remaining` 
+                            : '🎉 All tasks completed!'}
+                        </p>
+                        {stats.percentage === 100 && (
+                          <button
+                            onClick={() => deleteMember(member.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm"
+                          >
+                            Complete & Archive
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {teamMembers.length === 0 && (
+                <div className="text-center py-12">
+                  <User className="mx-auto text-gray-400 mb-4" size={48} />
+                  <p className="text-gray-600">No team members added yet. Click "Add New Team Member" to get started.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
