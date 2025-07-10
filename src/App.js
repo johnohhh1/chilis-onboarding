@@ -3,11 +3,15 @@ import { Plus, User, Calendar, Phone, CheckCircle, Circle, Printer, Trash2, Edit
 
 const OnboardingApp = () => {
   const [teamMembers, setTeamMembers] = useState([]);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [lastSaved, setLastSaved] = useState(null);
-  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' or 'detail'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('startDate');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [selectedMember, setSelectedMember] = useState(null);
   const [newMember, setNewMember] = useState({
     name: '',
@@ -127,19 +131,18 @@ const OnboardingApp = () => {
     };
 
     loadData();
-  }, []);
+  }, [API_BASE_URL]);
 
   // Auto-save functionality
   useEffect(() => {
-    if (teamMembers.length > 0) {
-      setHasUnsavedChanges(true);
-      const autoSaveTimer = setTimeout(() => {
+    if (hasUnsavedChanges) {
+      const timer = setTimeout(() => {
         saveData();
-      }, 2000); // Auto-save after 2 seconds of no changes
-      
-      return () => clearTimeout(autoSaveTimer);
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(timer);
     }
-  }, [teamMembers]);
+  }, [hasUnsavedChanges, saveData]);
 
   const saveData = async () => {
     try {
@@ -181,30 +184,30 @@ const OnboardingApp = () => {
   };
 
   // Enhanced data persistence with backup
-  const backupData = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/backup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          teamMembers,
-          lastSaved: lastSaved?.toISOString()
-        })
-      });
+  // const backupData = async () => {
+  //   try {
+  //     const response = await fetch(`${API_BASE_URL}/backup`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         teamMembers,
+  //         lastSaved: lastSaved?.toISOString()
+  //       })
+  //     });
 
-      if (response.ok) {
-        alert('Backup created successfully!');
-      } else {
-        console.error('Failed to create backup');
-        alert('Failed to create backup. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error creating backup:', error);
-      alert('Error creating backup. Please try again.');
-    }
-  };
+  //     if (response.ok) {
+  //       alert('Backup created successfully!');
+  //     } else {
+  //       console.error('Failed to create backup');
+  //       alert('Failed to create backup. Please try again.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error creating backup:', error);
+  //     alert('Error creating backup. Please try again.');
+  //   }
+  // };
 
   const validateForm = () => {
     const errors = {};
@@ -306,22 +309,25 @@ const OnboardingApp = () => {
     return { total, completed, inProgress, notStarted, overdue };
   };
 
-  const getMembersByStatus = () => {
-    return {
-      completed: teamMembers.filter(m => getCompletionStats(m).percentage === 100),
-      inProgress: teamMembers.filter(m => {
-        const stats = getCompletionStats(m);
-        return stats.percentage > 0 && stats.percentage < 100;
-      }),
-      notStarted: teamMembers.filter(m => getCompletionStats(m).percentage === 0),
-      overdue: teamMembers.filter(m => {
-        const startDate = new Date(m.startDate);
-        const today = new Date();
-        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-        return daysSinceStart > 7 && getCompletionStats(m).percentage < 100;
-      })
-    };
-  };
+  // Helper function to get members by status
+  // const getMembersByStatus = (status) => {
+  //   return teamMembers.filter(member => {
+  //     const completedTasks = member.checklist.filter(task => task.completed).length;
+  //     const totalTasks = member.checklist.length;
+  //     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  //     
+  //     switch (status) {
+  //       case 'completed':
+  //         return progress === 100;
+  //       case 'in-progress':
+  //         return progress > 0 && progress < 100;
+  //       case 'not-started':
+  //         return progress === 0;
+  //       default:
+  //         return true;
+  //     }
+  //   });
+  // };
 
   const getUrgentTasks = () => {
     const urgent = [];
@@ -506,9 +512,9 @@ const OnboardingApp = () => {
             {/* Navigation Tabs */}
             <div className="flex flex-wrap gap-2 mb-4">
               <button
-                onClick={() => setViewMode('dashboard')}
+                onClick={() => setActiveTab('dashboard')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  viewMode === 'dashboard' 
+                  activeTab === 'dashboard' 
                     ? 'bg-red-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
@@ -516,9 +522,9 @@ const OnboardingApp = () => {
                 📊 Dashboard
               </button>
               <button
-                onClick={() => setViewMode('detail')}
+                onClick={() => setActiveTab('detail')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  viewMode === 'detail' 
+                  activeTab === 'detail' 
                     ? 'bg-red-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
@@ -653,7 +659,7 @@ const OnboardingApp = () => {
           )}
 
           {/* Dashboard View */}
-          {viewMode === 'dashboard' && (
+          {activeTab === 'dashboard' && (
             <div className="space-y-6">
               {/* Dashboard Overview */}
               {teamMembers.length > 0 ? (
@@ -698,7 +704,7 @@ const OnboardingApp = () => {
                             <button
                               onClick={() => {
                                 setSelectedMember(member);
-                                setViewMode('detail');
+                                // setViewMode('detail'); // This line was removed
                               }}
                               className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                             >
@@ -727,7 +733,7 @@ const OnboardingApp = () => {
                               <button
                                 onClick={() => {
                                   setSelectedMember(member);
-                                  setViewMode('detail');
+                                  // setViewMode('detail'); // This line was removed
                                 }}
                                 className="text-blue-600 hover:text-blue-800 text-xs"
                               >
@@ -758,7 +764,7 @@ const OnboardingApp = () => {
                                 <button
                                   onClick={() => {
                                     setSelectedMember(member);
-                                    setViewMode('detail');
+                                    // setViewMode('detail'); // This line was removed
                                   }}
                                   className="text-green-600 hover:text-green-800 text-xs"
                                 >
@@ -797,7 +803,7 @@ const OnboardingApp = () => {
                                 <button
                                   onClick={() => {
                                     setSelectedMember(member);
-                                    setViewMode('detail');
+                                    // setViewMode('detail'); // This line was removed
                                   }}
                                   className="text-blue-600 hover:text-blue-800 text-xs"
                                 >
@@ -827,7 +833,7 @@ const OnboardingApp = () => {
           )}
 
           {/* Detail View */}
-          {viewMode === 'detail' && (
+          {activeTab === 'detail' && (
             <>
               {/* Summary Statistics */}
               {teamMembers.length > 0 && (
