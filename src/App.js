@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, User, Calendar, Phone, CheckCircle, Circle, Printer, Trash2, Edit2, Save, Mail, Download, Clock, AlertCircle, Building2 } from 'lucide-react';
+import { Plus, User, Calendar, Phone, CheckCircle, Circle, Printer, Trash2, Edit2, Save, Mail, Download, Clock, AlertCircle, Building2, LogOut, Users } from 'lucide-react';
 import { RestaurantProvider, useRestaurant } from './contexts/RestaurantContext';
 import RestaurantSelector from './components/RestaurantSelector';
 import MultiRestaurantDashboard from './components/MultiRestaurantDashboard';
+import LoginModal from './components/LoginModal';
 
 const OnboardingApp = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -21,6 +22,44 @@ const OnboardingApp = () => {
     restaurantEmail: ''
   });
   const [formErrors, setFormErrors] = useState({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [userCredentials, setUserCredentials] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const authenticated = localStorage.getItem('chilisTeamAuthenticated') === 'true';
+    const username = localStorage.getItem('chilisUsername');
+    const password = localStorage.getItem('chilisPassword');
+    const access = localStorage.getItem('chilisUserAccess');
+    
+    if (authenticated && username && password) {
+      setIsAuthenticated(true);
+      setUserCredentials({ username, password });
+      setCurrentUser({ username, access });
+    } else {
+      setShowLoginModal(true);
+    }
+  }, []);
+
+  const handleLogin = (credentials) => {
+    setIsAuthenticated(true);
+    setUserCredentials(credentials);
+    setCurrentUser({ username: credentials.username, access: credentials.access });
+    setShowLoginModal(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('chilisTeamAuthenticated');
+    localStorage.removeItem('chilisUsername');
+    localStorage.removeItem('chilisPassword');
+    localStorage.removeItem('chilisUserAccess');
+    setIsAuthenticated(false);
+    setUserCredentials({});
+    setCurrentUser(null);
+    setShowLoginModal(true);
+  };
 
   const checklistItems = [
     // Step 1: Setting Up New TM
@@ -106,6 +145,8 @@ const OnboardingApp = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Username': userCredentials.username,
+          'X-Password': userCredentials.password
         },
         body: JSON.stringify(dataToSave)
       });
@@ -131,7 +172,7 @@ const OnboardingApp = () => {
       setLastSaved(now);
       setHasUnsavedChanges(false);
     }
-  }, [teamMembers, API_BASE_URL, selectedRestaurant?.id]);
+  }, [teamMembers, API_BASE_URL, selectedRestaurant?.id, userCredentials.username, userCredentials.password]);
 
   // Load data from API on component mount
   useEffect(() => {
@@ -496,6 +537,17 @@ const OnboardingApp = () => {
     5: 'bg-orange-100 border-orange-300 text-orange-800'
   };
 
+  // If not authenticated, show login modal
+  if (!isAuthenticated) {
+    return (
+      <LoginModal 
+        isOpen={showLoginModal}
+        onLogin={handleLogin}
+        onClose={() => setShowLoginModal(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
@@ -503,10 +555,22 @@ const OnboardingApp = () => {
           {/* Header Section */}
           <div className="mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-              <h1 className="text-2xl md:text-3xl font-bold text-red-600 mb-2 md:mb-0">
-                Chili's Team Member Onboarding Tracker
-              </h1>
-              <RestaurantSelector />
+              <div className="flex items-center justify-between w-full">
+                <h1 className="text-2xl md:text-3xl font-bold text-red-600 mb-2 md:mb-0">
+                  Chili's Team Member Onboarding Tracker
+                </h1>
+                <div className="flex items-center gap-4">
+                  <RestaurantSelector />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Logout"
+                  >
+                    <LogOut size={16} />
+                    <span className="hidden md:inline">Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
               <span className="flex items-center gap-1">
@@ -525,69 +589,80 @@ const OnboardingApp = () => {
                   {selectedRestaurant.name}
                 </span>
               )}
+              {currentUser && (
+                <span className="flex items-center gap-1 text-green-600">
+                  <Users size={16} />
+                  {currentUser.username} ({currentUser.access})
+                </span>
+              )}
             </div>
             
-            {/* Navigation Tabs */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  activeTab === 'dashboard' 
-                    ? 'bg-red-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                📊 Dashboard
-              </button>
-              <button
-                onClick={() => setActiveTab('detail')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  activeTab === 'detail' 
-                    ? 'bg-red-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                👥 Team Members
-              </button>
-              <button
-                onClick={() => setActiveTab('multi-restaurant')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  activeTab === 'multi-restaurant' 
-                    ? 'bg-red-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                🏢 Multi-Restaurant
-              </button>
-            </div>
+            {/* Streamlined Navigation and Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              {/* Navigation Tabs */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                    activeTab === 'dashboard' 
+                      ? 'bg-red-600 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  📊 Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('detail')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                    activeTab === 'detail' 
+                      ? 'bg-red-600 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  👥 Team Members
+                </button>
+                {currentUser?.access === 'admin' && (
+                  <button
+                    onClick={() => setActiveTab('multi-restaurant')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      activeTab === 'multi-restaurant' 
+                        ? 'bg-red-600 text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    🏢 Multi-Restaurant
+                  </button>
+                )}
+              </div>
 
-            {/* Action Buttons - Mobile Friendly */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <button
-                onClick={saveData}
-                className={`px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium ${
-                  hasUnsavedChanges 
-                    ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                    : 'bg-gray-300 text-gray-600'
-                }`}
-              >
-                <Save size={18} />
-                Save Data
-              </button>
-              <button
-                onClick={exportAllData}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium"
-              >
-                <Download size={18} />
-                Export All
-              </button>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium sm:col-span-2 lg:col-span-1"
-              >
-                <Plus size={18} />
-                Add New Team Member
-              </button>
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={saveData}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium ${
+                    hasUnsavedChanges 
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                      : 'bg-gray-300 text-gray-600'
+                  }`}
+                >
+                  <Save size={16} />
+                  Save
+                </button>
+                <button
+                  onClick={exportAllData}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
+                >
+                  <Download size={16} />
+                  Export
+                </button>
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
+                >
+                  <Plus size={16} />
+                  Add Member
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1064,7 +1139,7 @@ const OnboardingApp = () => {
               {teamMembers.length === 0 && (
                 <div className="text-center py-12">
                   <User className="mx-auto text-gray-400 mb-4" size={48} />
-                  <p className="text-gray-600">No team members added yet. Click "Add New Team Member" to get started.</p>
+                  <p className="text-gray-600">No team members added yet. Click "Add Member" to get started.</p>
                 </div>
               )}
             </>
