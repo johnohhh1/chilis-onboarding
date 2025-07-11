@@ -1,4 +1,4 @@
-module.exports = function handler(req, res) {
+export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Username, X-Password');
@@ -15,4 +15,4 @@ module.exports = function handler(req, res) {
     method: req.method,
     timestamp: new Date().toISOString()
   });
-}; 
+} 
