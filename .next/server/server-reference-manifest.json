@@ -1,0 +1,17 @@
+{
+  "node": {
+    "400d61f15c545e542199ae45951336b44bc214ea1f": {
+      "workers": {
+        "app/page": {
+          "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fyoda%2Fchilis-onboarding%2Fapp%2Fpage.tsx%22%2C%5B%7B%22id%22%3A%22400d61f15c545e542199ae45951336b44bc214ea1f%22%2C%22exportedName%22%3A%22%24%24RSC_SERVER_ACTION_0%22%7D%5D%5D%5D&__client_imported__=!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      }
+    }
+  },
+  "edge": {},
+  "encryptionKey": "8iqADP6sKyVhnduWD/B3FyBucZFxDxPYpbmIbJ9RdtU="
+}
